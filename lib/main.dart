@@ -1,115 +1,222 @@
+// import 'package:flutter/material.dart';
+// import 'package:workload_detector_app/screens/home/home.dart';
+//
+// void main() {
+//   runApp(const MyApp());
+// }
+//
+// class MyApp extends StatelessWidget {
+//   const MyApp({super.key});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       title: 'Flutter Demo',
+//       debugShowCheckedModeBanner: false,
+//       theme: ThemeData(
+//         primarySwatch: Colors.blue,
+//       ),
+//       home: const MyHomePage(title: 'Flutter Demo Home Page'),
+//     );
+//   }
+// }
+
+
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
+import 'package:cross_file/cross_file.dart';
+import 'package:dotted_border/dotted_border.dart';
+import 'dart:io';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          // automaticallyImplyLeading: true,
+          backgroundColor: Colors.black54,
+          iconTheme: const IconThemeData(color: Colors.white, size: 19.0),
+          leadingWidth: 72.0,
+          title: const Text(
+            "Mental Workload Detector",
+            // style: Fonts.appBarTitle.copyWith(color: Colors.white),
+          ),
+        ),
+        body: Center(
+          child: Wrap(
+            direction: Axis.horizontal,
+            runSpacing: 8,
+            spacing: 8,
+            children: const [
+              ExampleDragTarget(),
+            ],
+          ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            String res = await sendFiles();
+            print("res = $res");
+          },
+        ),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
+
+  Future<String> sendFiles() async {
+    var request = http.MultipartRequest('POST', Uri.parse('http://localhost:5000/predict'));
+
+    // add vhdr file
+    var vhdrFile = await http.MultipartFile.fromPath('vhdr', 'F:/drdo/data/nback1.vhdr');
+    request.files.add(vhdrFile);
+
+    // add vmrk file
+    var vmrkFile = await http.MultipartFile.fromPath('vmrk', 'F:/drdo/data/nback1.vmrk');
+    request.files.add(vmrkFile);
+
+    // add eeg file
+    var eegFile = await http.MultipartFile.fromPath('eeg', 'F:/drdo/data/nback1.eeg');
+    request.files.add(eegFile);
+
+    var response = await request.send();
+    var responseText = await response.stream.bytesToString();
+    return responseText;
+  }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class ExampleDragTarget extends StatefulWidget {
+  const ExampleDragTarget({Key? key}) : super(key: key);
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _ExampleDragTargetState createState() => _ExampleDragTargetState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _ExampleDragTargetState extends State<ExampleDragTarget> {
+  final List<XFile> _list = [];
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  bool _dragging = false;
+
+  Offset? offset;
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+    return DropTarget(
+      onDragDone: (detail) async {
+        setState(() {
+          _list.addAll(detail.files);
+        });
+
+        debugPrint('onDragDone:');
+        for (final file in detail.files){
+          debugPrint('  ${file.path} ${file.name}'
+              '  ${await file.lastModified()}'
+              '  ${await file.length()}'
+              '  ${file.mimeType}');
+        }
+      },
+      onDragUpdated: (details) {
+        setState(() {
+          offset = details.localPosition;
+        });
+      },
+      onDragEntered: (detail) {
+        setState(() {
+          _dragging = true;
+          offset = detail.localPosition;
+        });
+      },
+      onDragExited: (detail) {
+        setState(() {
+          _dragging = false;
+          offset = null;
+        });
+      },
+      child: Container(
+        height: 200,
+        width: 600,
+        // color: _dragging ? Colors.blue.withOpacity(0.4) : Colors.black26,
+        child: buildDecoration(
+          child: Column(
+            children: [
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.cloud_upload_outlined,
+                      size: 80,
+                      color: Colors.white,
+                    ),
+                    if (_list.isEmpty)
+                      const Center(child: Text("Drop here"))
+                    else
+                      Text(_list.map((e) => e.path).join("\n")),
+                    if (offset != null)
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Text(
+                          '$offset',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    const SizedBox(
+                      height: 16,
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        // final events = await controller.pickFiles();
+                        // if(events.isEmpty) return;
+                        // UploadedFile(events.first);
+                      },
+                      icon: Icon(Icons.search),
+                      label: Text(
+                        'Choose File',
+                        style: TextStyle(color: Colors.white, fontSize: 15),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 20
+                          ),
+                          primary: Colors.green.shade300,
+                          shape: RoundedRectangleBorder()
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
+}
+
+Widget buildDecoration({required Widget child}){
+  final colorBackground =  Colors.green;
+  return ClipRRect(
+    borderRadius: BorderRadius.circular(12),
+    child: Container(
+      padding: const EdgeInsets.all(10),
+      color: colorBackground,
+      child: DottedBorder(
+          borderType: BorderType.RRect,
+          color: Colors.white,
+          strokeWidth: 3,
+          dashPattern: const [8,4],
+          radius: const Radius.circular(10),
+          padding: EdgeInsets.zero,
+          child: child
+      ),
+    ),
+  );
 }
