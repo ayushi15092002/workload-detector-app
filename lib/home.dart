@@ -1,4 +1,5 @@
 import 'package:cross_file/cross_file.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -13,6 +14,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<XFile> _list = [];
+  String result = " ";
+  bool isLoading = false;
   void onDataReceived(List<XFile>? data) {
     setState(() {
       _list = data!;
@@ -33,27 +36,125 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       body: Center(
-        child: Wrap(
-          direction: Axis.horizontal,
-          runSpacing: 8,
-          spacing: 8,
-          children:  [
-            ExampleDragTarget(onDataReceived: onDataReceived),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Wrap(
+              direction: Axis.horizontal,
+              runSpacing: 8,
+              spacing: 8,
+              children:  [
+                DragTargetWidget(onDataReceived: onDataReceived),
+              ],
+            ),
+            SizedBox(
+              height: 50,
+            ),
+            SizedBox(
+              height: 60,
+              width: 150,
+              child: ElevatedButton(
+                  style: ButtonStyle(
+                      backgroundColor:
+                      MaterialStateProperty.all(Color(0xffE1B310)),
+                      textStyle: MaterialStateProperty.all(TextStyle(color: Colors.black, fontFamily: "Rye")),
+                      elevation: MaterialStateProperty.all(20.0),
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(40.0),
+                          )
+                      )),
+                  child: Text(
+                    "Check",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.black,
+                    ),
+                  ),
+                  onPressed: () async {
+
+                    print("pressed");
+                    if (_list.length == 3) {
+                      setState(() {
+                        isLoading = true;
+                        result = "";
+                      });
+                      String res = await sendFiles();
+                      print("res $res");
+                      if(res != null && res.isNotEmpty){
+                        print("setting state");
+                        isLoading = false;
+                        result = res;
+                        setState(() {});
+                      }
+
+                    }
+                  }
+
+              ),
+            ),
+            Column(
+                children: [
+                  SizedBox(
+                    height: 20,
+                  ),
+                  resWidget()
+                ],
+            )
 
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          print("pressed");
-          if(_list.length == 3) {
-            print(">>>>");
-            String res = await sendFiles();
-            print("res = $res");
-          }
-        },
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () async {
+      //     print("pressed");
+      //     if(_list.length == 3) {
+      //       print(">>>>");
+      //       String res = await sendFiles();
+      //       print("res = $res");
+      //       if(res != null && res.isNotEmpty){
+      //         setState(() {
+      //           isLoading = false;
+      //           result = res;
+      //         });
+      //       }
+      //     }
+      //   },
+      // ),
     );
+  }
+  Widget resWidget(){
+    if(isLoading == true){
+      return CupertinoActivityIndicator();
+    }
+    print(!isLoading && result.isNotEmpty);
+    if(!isLoading && result.isNotEmpty){
+      print("under if");
+      return Text(
+          resultString(result),
+        style: TextStyle(
+          fontSize: 17,
+          fontWeight: FontWeight.w900,
+          color: Colors.black,
+        ),
+      );
+
+    }
+    return SizedBox();
+  }
+  String resultString(String res){
+    if(res == "0"){
+      return "LOW";
+    }
+    else if(res == "2"){
+      return "MEDIUM";
+    }
+    else if(res == "3"){
+      return "HIGH";
+    }
+    return "";
   }
   Future<String> sendFiles() async {
     var request = http.MultipartRequest('POST', Uri.parse('http://localhost:5000/predict'));

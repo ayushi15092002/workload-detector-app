@@ -5,15 +5,15 @@ import 'package:dotted_border/dotted_border.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 
-class ExampleDragTarget extends StatefulWidget {
+class DragTargetWidget extends StatefulWidget {
   final Function(List<XFile>) onDataReceived;
-  const ExampleDragTarget({Key? key, required this.onDataReceived}) : super(key: key);
+  const DragTargetWidget({Key? key, required this.onDataReceived}) : super(key: key);
 
   @override
-  _ExampleDragTargetState createState() => _ExampleDragTargetState();
+  _DragTargetWidgetState createState() => _DragTargetWidgetState();
 }
 
-class _ExampleDragTargetState extends State<ExampleDragTarget> {
+class _DragTargetWidgetState extends State<DragTargetWidget> {
   final List<XFile> _list = [];
 
   bool _dragging = false;
@@ -57,7 +57,7 @@ class _ExampleDragTargetState extends State<ExampleDragTarget> {
         });
       },
       child: Container(
-        height: 200,
+        height: 220,
         width: 600,
         // color: _dragging ? Colors.blue.withOpacity(0.4) : Colors.black26,
         child: buildDecoration(
